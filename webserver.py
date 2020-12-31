@@ -1,7 +1,7 @@
 from database import DBSession, Restaurant
 
 from http.server import BaseHTTPRequestHandler, HTTPServer
-import cgi
+from urllib.parse import parse_qs
 
 
 class RequestHandler(BaseHTTPRequestHandler):
@@ -27,7 +27,7 @@ class RequestHandler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         if self.path == '/restaurants':
-            self.begin_page('Restaurants list')
+            self.begin_page("Restaurants list")
 
             body = ""
 
@@ -51,11 +51,39 @@ class RequestHandler(BaseHTTPRequestHandler):
             self.wfile.write(body.encode())
 
             self.end_page()
+        elif self.path == '/restaurants/create':
+            self.begin_page("Create restaurant")
+
+            body = ""
+            body += "<h2>Create a new restaurant</h2>"
+            body += "<form method='POST'>"
+            body += "<input type='text' name='name' placeholder='Restaurant name'/>"
+            body += "<input type='submit' value='Create'/>"
+            body += "</form>"
+
+            self.wfile.write(body.encode())
+
+            self.end_page()
         else:
             self.not_found()
 
     def do_POST(self):
-        self.not_found()
+        if self.path.endswith('/restaurants/create'):
+            content_length = int(self.headers['Content-Length'])
+            form_data = self.rfile.read(content_length).decode()
+            params = parse_qs(form_data)
+            name = params['name'][0]
+
+            session = DBSession()
+            session.add(Restaurant(name=name))
+            session.commit()
+            session = None
+
+            self.send_response(301)
+            self.send_header('Location', '/restaurants')
+            self.end_headers()
+        else:
+            self.not_found()
 
 
 def main():
