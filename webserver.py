@@ -24,6 +24,12 @@ class RequestHandler(BaseHTTPRequestHandler):
 
         self.wfile.write(footer.encode())
 
+    def is_restaurant_crud(self, action):
+        return self.path.startswith('/restaurants/') and self.path.endswith(f'/{action}')
+
+    def get_restaurant_id(self, action):
+        return int(self.path.replace('/restaurants/', '').replace(f'/{action}', ''))
+
     def not_found(self) -> None:
         self.send_error(404)
 
@@ -66,9 +72,9 @@ class RequestHandler(BaseHTTPRequestHandler):
             self.wfile.write(body.encode())
 
             self.end_page()
-        elif self.path.startswith('/restaurants/') and self.path.endswith('/edit'):
-            id = int(self.path.replace(
-                '/restaurants/', '').replace('/edit', ''))
+        elif self.is_restaurant_crud('edit'):
+            id = self.get_restaurant_id('edit')
+
             session = DBSession()
             r = session.query(Restaurant).get(id)
 
@@ -84,6 +90,23 @@ class RequestHandler(BaseHTTPRequestHandler):
             self.wfile.write(body.encode())
 
             self.end_page()
+        elif self.is_restaurant_crud('delete'):
+            id = self.get_restaurant_id('delete')
+
+            session = DBSession()
+            r = session.query(Restaurant).get(id)
+
+            self.begin_page("Delete restaurant")
+
+            body = ""
+            body += f"<h2>Are you sure you want to delete {r.name}?</h2>"
+            body += "<form method='POST'>"
+            body += "<input type='submit' value='Confirm deletion'/>"
+            body += "</form>"
+
+            self.wfile.write(body.encode())
+
+            self.end_page()
         else:
             self.not_found()
 
@@ -91,6 +114,11 @@ class RequestHandler(BaseHTTPRequestHandler):
         content_length = int(self.headers['Content-Length'])
         form_data = self.rfile.read(content_length).decode()
         return parse_qs(form_data)
+
+    def redirect_to_restaurants_list(self):
+        self.send_response(301)
+        self.send_header('Location', '/restaurants')
+        self.end_headers()
 
     def do_POST(self):
         if self.path.endswith('/restaurants/create'):
@@ -100,14 +128,10 @@ class RequestHandler(BaseHTTPRequestHandler):
             session = DBSession()
             session.add(Restaurant(name=name))
             session.commit()
-            session = None
 
-            self.send_response(301)
-            self.send_header('Location', '/restaurants')
-            self.end_headers()
-        elif self.path.startswith('/restaurants/') and self.path.endswith('/edit'):
-            id = int(self.path.replace(
-                '/restaurants/', '').replace('/edit', ''))
+            self.redirect_to_restaurants_list()
+        elif self.is_restaurant_crud('edit'):
+            id = self.get_restaurant_id('edit')
             params = self.parse_form_data()
             name = params['name'][0]
 
@@ -115,11 +139,17 @@ class RequestHandler(BaseHTTPRequestHandler):
             r = session.query(Restaurant).get(id)
             r.name = name
             session.commit()
-            session = None
 
-            self.send_response(301)
-            self.send_header('Location', '/restaurants')
-            self.end_headers()
+            self.redirect_to_restaurants_list()
+        elif self.is_restaurant_crud('delete'):
+            id = self.get_restaurant_id('delete')
+
+            session = DBSession()
+            r = session.query(Restaurant).get(id)
+            session.delete(r)
+            session.commit()
+
+            self.redirect_to_restaurants_list()
         else:
             self.not_found()
 
