@@ -1,82 +1,66 @@
+from database import DBSession, Restaurant
+
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import cgi
 
 
 class RequestHandler(BaseHTTPRequestHandler):
-    def do_GET(self):
-        if self.path == '/':
-            self.send_response(200)
-            self.send_header('Content-Type', 'text/html')
-            self.end_headers()
-
-            output = ""
-            output += "<html><body>"
-            output += "<form method='POST' enctype='multipart/form-data' action='/'>"
-            output += "<h2>What would you like me to say?</h2>"
-            output += "<input name='message' type='text'/>"
-            output += "<input type='submit' value='Submit'/>"
-            output += "</form>"
-            output += "</body></html>"
-
-            print(output)
-
-            self.wfile.write(output.encode())
-        elif self.path.endswith('/hello'):
-            self.send_response(200)
-            self.send_header('Content-Type', 'text/html')
-            self.end_headers()
-
-            output = ""
-            output += "<html><body>"
-            output += "Hello, world!"
-            output += "</body></html>"
-
-            print(output)
-
-            self.wfile.write(output.encode())
-        elif self.path.endswith('/hola'):
-            self.send_response(200)
-            self.send_header('Content-Type', 'text/html')
-            self.end_headers()
-
-            output = ""
-            output += "<html><body>"
-            output += "¡Hola Mundo!"
-            output += "<br/>"
-            output += "<a href='/hello'>English version</a>"
-            output += "</body></html>"
-
-            print(output)
-
-            self.wfile.write(output.encode())
-        else:
-            self.send_error(404)
-
-    def do_POST(self):
+    def begin_page(self, title: str) -> None:
         self.send_response(200)
+        self.send_header('Content-Type', 'text/html')
         self.end_headers()
 
-        message = ""
-        ctype, pdict = cgi.parse_header(self.headers.get('Content-Type'))
-        if ctype == 'multipart/form-data':
-            pdict['boundary'] = pdict['boundary'].encode()
-            fields = cgi.parse_multipart(self.rfile, pdict)
-            message = fields.get('message')[0]
+        header = "<html lang='en'>"
+        header += f"<head><title>{title}</title></head>"
+        header += "<body><main>"
 
-        output = ""
-        output += "<html><body>"
-        output += "<h2>Custom greeting</h2>"
-        output += f"<strong>{message}</strong>"
-        output += "<br/>"
-        output += "<a href='/'>Go back</a>"
-        output += "</body></html>"
+        self.wfile.write(header.encode())
 
-        print(output)
+    def end_page(self):
+        footer = "</main></body>"
+        footer += "</html>"
 
-        self.wfile.write(output.encode())
+        self.wfile.write(footer.encode())
+
+    def not_found(self) -> None:
+        self.send_error(404)
+
+    def do_GET(self):
+        if self.path == '/restaurants':
+            self.begin_page('Restaurants list')
+
+            body = ""
+
+            body += "<div>"
+            body += "<a href='/restaurants/create'>Add new restaurant</a>"
+            body += "</div>"
+
+            session = DBSession()
+
+            restaurants = session.query(Restaurant).all()
+            for r in restaurants:
+                body += "<div>"
+                body += f"<h3>{r.name}</h3>"
+                body += f"<a href='/restaurants/{r.id}/edit'>Edit</a>"
+                body += "&nbsp;"
+                body += f"<a href='/restaurants/{r.id}/delete'>Delete</a>"
+                body += "</div>"
+
+            session.commit()
+
+            self.wfile.write(body.encode())
+
+            self.end_page()
+        else:
+            self.not_found()
+
+    def do_POST(self):
+        self.not_found()
 
 
 def main():
+    # Base.metadata.create_all(engine)
+
     port = 8080
     server_address = ('', port)
     server = HTTPServer(server_address, RequestHandler)
