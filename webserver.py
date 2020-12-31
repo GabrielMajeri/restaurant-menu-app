@@ -16,6 +16,21 @@ class RequestHandler(BaseHTTPRequestHandler):
             print(output)
 
             self.wfile.write(output.encode('utf-8'))
+        elif self.path.endswith('/hola'):
+            self.send_response(200)
+            self.send_header('Content-Type', 'text/html')
+            self.end_headers()
+
+            output = ""
+            output += "<html><body>"
+            output += "¡Hola Mundo!"
+            output += "<br/>"
+            output += "<a href='/hello'>English version</a>"
+            output += "</body></html>"
+
+            print(output)
+
+            self.wfile.write(output.encode('utf-8'))
         else:
             self.send_error(404)
 
