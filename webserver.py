@@ -1,7 +1,9 @@
-from database import DBSession, Restaurant
-
+import html
 from http.server import BaseHTTPRequestHandler, HTTPServer
+from typing import Dict
 from urllib.parse import parse_qs
+
+from database import DBSession, Restaurant
 
 
 class RequestHandler(BaseHTTPRequestHandler):
@@ -26,7 +28,7 @@ class RequestHandler(BaseHTTPRequestHandler):
         self.send_error(404)
 
     def do_GET(self):
-        if self.path == '/restaurants':
+        if self.path.endswith('/restaurants'):
             self.begin_page("Restaurants list")
 
             body = ""
@@ -51,7 +53,7 @@ class RequestHandler(BaseHTTPRequestHandler):
             self.wfile.write(body.encode())
 
             self.end_page()
-        elif self.path == '/restaurants/create':
+        elif self.path.endswith('/restaurants/create'):
             self.begin_page("Create restaurant")
 
             body = ""
@@ -64,18 +66,54 @@ class RequestHandler(BaseHTTPRequestHandler):
             self.wfile.write(body.encode())
 
             self.end_page()
+        elif self.path.startswith('/restaurants/') and self.path.endswith('/edit'):
+            id = int(self.path.replace(
+                '/restaurants/', '').replace('/edit', ''))
+            session = DBSession()
+            r = session.query(Restaurant).get(id)
+
+            self.begin_page("Edit restaurant")
+
+            body = ""
+            body += "<h2>Edit restaurant</h2>"
+            body += "<form method='POST'>"
+            body += f"<input type='text' name='name' placeholder='Restaurant name' value='{html.escape(r.name)}'/>"
+            body += "<input type='submit' value='Save'/>"
+            body += "</form>"
+
+            self.wfile.write(body.encode())
+
+            self.end_page()
         else:
             self.not_found()
 
+    def parse_form_data(self) -> Dict[str, str]:
+        content_length = int(self.headers['Content-Length'])
+        form_data = self.rfile.read(content_length).decode()
+        return parse_qs(form_data)
+
     def do_POST(self):
         if self.path.endswith('/restaurants/create'):
-            content_length = int(self.headers['Content-Length'])
-            form_data = self.rfile.read(content_length).decode()
-            params = parse_qs(form_data)
+            params = self.parse_form_data()
             name = params['name'][0]
 
             session = DBSession()
             session.add(Restaurant(name=name))
+            session.commit()
+            session = None
+
+            self.send_response(301)
+            self.send_header('Location', '/restaurants')
+            self.end_headers()
+        elif self.path.startswith('/restaurants/') and self.path.endswith('/edit'):
+            id = int(self.path.replace(
+                '/restaurants/', '').replace('/edit', ''))
+            params = self.parse_form_data()
+            name = params['name'][0]
+
+            session = DBSession()
+            r = session.query(Restaurant).get(id)
+            r.name = name
             session.commit()
             session = None
 
