@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request, redirect, url_for
 
 from database import DBSession, Restaurant, MenuItem
 
@@ -13,19 +13,52 @@ def view_menu_items(restaurant_id):
     return render_template('menu.html', restaurant=restaurant, items=items)
 
 
-@app.route('/restaurant/<int:restaurant_id>/new/')
+@app.route('/restaurant/<int:restaurant_id>/new/', methods=['GET', 'POST'])
 def add_menu_item(restaurant_id):
-    return 'Add a new menu item'
+    if request.method == 'POST':
+        session = DBSession()
+        menu_item = MenuItem(
+            name=request.form['name'],
+            restaurant_id=restaurant_id
+        )
+        session.add(menu_item)
+        session.commit()
+
+        return redirect(url_for('view_menu_items', restaurant_id=restaurant_id))
+    else:
+        return render_template('new_menu_item.html', restaurant_id=restaurant_id)
 
 
-@app.route('/restaurant/<int:restaurant_id>/<int:menu_id>/edit/')
+@app.route('/restaurant/<int:restaurant_id>/<int:menu_id>/edit/', methods=['GET', 'POST'])
 def edit_menu_item(restaurant_id, menu_id):
-    return 'Edit a menu item'
+    session = DBSession()
+    item = session.query(MenuItem).filter_by(id=menu_id).one()
+    if request.method == 'POST':
+        item.name = request.form['name']
+        session.commit()
+        return redirect(url_for('view_menu_items', restaurant_id=restaurant_id))
+    else:
+        return render_template(
+            'edit_menu_item.html',
+            restaurant_id=restaurant_id,
+            item=item
+        )
 
 
-@app.route('/restaurant/<int:restaurant_id>/<int:menu_id>/delete/')
+@app.route('/restaurant/<int:restaurant_id>/<int:menu_id>/delete/', methods=['GET', 'POST'])
 def delete_menu_item(restaurant_id, menu_id):
-    return 'Delete a menu item'
+    session = DBSession()
+    item = session.query(MenuItem).filter_by(id=menu_id).one()
+    if request.method == 'POST':
+        session.delete(item)
+        session.commit()
+        return redirect(url_for('view_menu_items', restaurant_id=restaurant_id))
+    else:
+        return render_template(
+            'delete_menu_item.html',
+            restaurant_id=restaurant_id,
+            item=item
+        )
 
 
 if __name__ == '__main__':
