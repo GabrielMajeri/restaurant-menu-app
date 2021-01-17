@@ -1,23 +1,16 @@
-from flask import Flask
+from flask import Flask, render_template
 
 from database import DBSession, Restaurant, MenuItem
 
 app = Flask(__name__)
 
 
-session = DBSession()
-
-
 @app.route('/restaurant/<int:restaurant_id>/')
 def view_menu_items(restaurant_id):
-    output = ''
+    session = DBSession()
+    restaurant = session.query(Restaurant).get(restaurant_id)
     items = session.query(MenuItem).filter_by(restaurant_id=restaurant_id)
-    for i in items:
-        output += f'{i.name} <br/>'
-        output += f'{i.price or ""} <br/>'
-        output += f'{i.description or ""} <br/>'
-    output += '<br/>'
-    return output
+    return render_template('menu.html', restaurant=restaurant, items=items)
 
 
 @app.route('/restaurant/<int:restaurant_id>/new/')
@@ -36,4 +29,5 @@ def delete_menu_item(restaurant_id, menu_id):
 
 
 if __name__ == '__main__':
+    # Need to disable multithreading, since SQLite doesn't support it.
     app.run()
