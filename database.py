@@ -15,10 +15,20 @@ if __name__ == '__main__':
 
     r1 = Restaurant(name="Tony's Pizzeria")
     session.add(r1)
-    session.add(Restaurant(name="Best Diner"))
-    session.add(Restaurant(name="Faster Food"))
+    r2 = Restaurant(name="Best Diner")
+    session.add(r2)
+    r3 = Restaurant(name="Faster Food")
+    session.add(r3)
 
-    i1 = MenuItem(name="Cheeze Pizza", restaurant=r1)
-    session.add(i1)
+    item = MenuItem(name="Cheeze Pizza", restaurant=r1)
+    session.add(item)
+    item = MenuItem(name="Diabolica", restaurant=r1)
+    session.add(item)
+
+    item = MenuItem(name="Fried Fish", restaurant=r2)
+    session.add(item)
+
+    item = MenuItem(name="Hamburger", price="$5", restaurant=r3)
+    session.add(item)
 
     session.commit()
