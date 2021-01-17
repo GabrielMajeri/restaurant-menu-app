@@ -1,4 +1,8 @@
 <html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="{{url_for('static', filename='style.css')}}" />
+  </head>
   <body>
     <h1>{{ restaurant.name }}</h1>
 
@@ -18,16 +22,16 @@
             restaurant_id=restaurant.id
           )
         }}"
+        class="create-button"
       >
         Create a new menu item
       </a>
     </p>
 
     {% for i in items %}
-    <div>
-      <p>{{i.name}}</p>
+    <div class="menu-item">
+      <h2>{{i.name}} <span>{{i.price}}</span></h2>
       <p>{{i.description}}</p>
-      <p>{{i.price}}</p>
       <p>
         <a
           href="{{

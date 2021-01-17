@@ -1,0 +1,31 @@
+body {
+  max-width: 52rem;
+  margin: auto;
+}
+
+.create-button {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid black;
+  border-radius: 5px;
+  margin-left: 2.5rem;
+}
+
+.menu-item {
+  border: 1px solid gray;
+  padding: 0 1rem;
+}
+
+@media (min-width: 30rem) {
+  .menu-item {
+    margin: 0 auto 0 2rem;
+    max-width: 28rem;
+  }
+}
+
+.menu-item h2 {
+  display: flex;
+}
+
+.menu-item h2 span {
+  margin-left: auto;
+}
