@@ -67,5 +67,25 @@ def delete_menu_item(restaurant_id, menu_id):
         )
 
 
+# JSON routes
+
+@app.route('/restaurant/<int:restaurant_id>/json/')
+def get_menu_items_json(restaurant_id):
+    session = DBSession()
+    items = session.query(MenuItem).filter_by(restaurant_id=restaurant_id)
+    return {
+        'menu_items': [item.serialize() for item in items]
+    }
+
+
+@app.route('/restaurant/<int:restaurant_id>/<int:menu_id>/json/')
+def get_menu_item_json(restaurant_id, menu_id):
+    session = DBSession()
+    item = session.query(MenuItem).get(menu_id)
+    return {
+        'menu_item': item.serialize()
+    }
+
+
 if __name__ == '__main__':
     app.run()

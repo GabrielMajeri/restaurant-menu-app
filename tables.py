@@ -24,3 +24,12 @@ class MenuItem(Base):
 
     restaurant_id = Column(Integer, ForeignKey('restaurant.id'))
     restaurant = relationship(Restaurant)
+
+    def serialize(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'course': self.course,
+            'description': self.description,
+            'price': self.price,
+        }
