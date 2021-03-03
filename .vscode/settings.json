@@ -1,3 +1,7 @@
 {
-  "editor.formatOnSave": true
+  "editor.formatOnSave": true,
+  /* Auto formatting breaks Jinja template code */
+  "[html]": {
+    "editor.formatOnSave": false
+  }
 }

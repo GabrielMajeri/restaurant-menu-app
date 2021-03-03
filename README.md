@@ -1,15 +1,23 @@
 # Restaurant menu app
 
-This is a simple web app written in Python.
+Simple web app for managing a list of restaurants and their menus.
 
-This repo contains my solution implemented as part of the [Full Stack Foundations](https://www.udacity.com/course/full-stack-foundations--ud088) course from Udacity.
+This repo contains the project I implemented as part of the [Full Stack Foundations](https://www.udacity.com/course/full-stack-foundations--ud088) course from Udacity.
+
+## Tech stack
+
+- [Python 3](https://www.python.org/)
+- [Flask](https://flask.palletsprojects.com/en/1.1.x/) web framework
+- [SQLAlchemy](https://www.sqlalchemy.org/) object-relational mapper
+- [SQLite](https://www.sqlite.org/index.html) database
 
 ## Dependencies
 
-Requires [Python 3](https://www.python.org/) and the packages in the [requirements file](requirements.txt).
+If you have pip, you can install all of the required dependencies as listed
+in the [requirements file](requirements.txt).
 
 ## Running
 
 ```bash
-python3 webserver.py
+FLASK_ENV=development flask run
 ```
