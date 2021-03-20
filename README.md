@@ -18,6 +18,16 @@ in the [requirements file](requirements.txt).
 
 ## Running
 
+You can start a local Flask development server by running:
+
 ```bash
 FLASK_ENV=development flask run
+```
+
+## Generating the ER diagram
+
+Install [ERAlchemy](https://pypi.org/project/ERAlchemy/) and its dependencies and then run:
+
+```bash
+eralchemy -i sqlite:///restaurant-menu.db -o erd.pdf
 ```
